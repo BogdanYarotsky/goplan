@@ -9,13 +9,15 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/BogdanYarotsky/goplan/domain"
 	"github.com/BogdanYarotsky/goplan/handlers"
 )
 
 func main() {
-	l := log.New(os.Stdout, "plan-api ", log.LstdFlags)
+	l := log.New(os.Stdout, "plan-api", log.LstdFlags)
+	ps := domain.NewPlanService()
+	ph := handlers.NewPlanHandler(l, ps)
 	sm := http.NewServeMux()
-	ph := handlers.NewPlanHandler(l)
 	sm.Handle("/", ph)
 	s := &http.Server{
 		Addr:    "localhost:9090",
