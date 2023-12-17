@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -11,30 +12,37 @@ import (
 )
 
 type TimeSlot struct {
-	id        int
-	machineId int
-	contentId int
-	start     time.Time
-	end       time.Time
+	Id        int
+	ContentId int
+	Start     time.Time
+	End       time.Time
 }
 
 var slots = []*TimeSlot{
 	{
-		1, 1, 1, time.Now(), time.Now(),
+		1, 777, time.Now(), time.Now(),
 	},
 }
 
-type Handler struct {
+type PlanningHandler struct {
 	l *log.Logger
 }
 
-func (s *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *PlanningHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	json, err := json.Marshal(slots)
+	if err != nil {
+		http.Error(w, "Could not parse slots", http.StatusInternalServerError)
+	}
+	c, err := w.Write(json)
+	if err != nil || c < len(json) {
+		http.Error(w, "Could not write response", http.StatusInternalServerError)
+	}
 }
 
 func main() {
-	l := log.New(os.Stdout, "plan-api", log.LstdFlags)
+	l := log.New(os.Stdout, "plan-api ", log.LstdFlags)
 	sm := http.NewServeMux()
-	h := &Handler{l}
+	h := &PlanningHandler{l}
 	sm.Handle("/", h)
 	s := &http.Server{
 		Addr:    "localhost:9090",
